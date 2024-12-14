@@ -25,6 +25,7 @@ const execCmd = (cmd: string, args: string[] = []) =>
         app.on('error', reject);
     });
 
+// ProfileSummaryCardsTemplate
 const commitFile = async () => {
     await execCmd('git', ['config', '--global', 'user.email', 'profile-summary-cards-bot@example.com']);
     await execCmd('git', ['config', '--global', 'user.name', 'profile-summary-cards[bot]']);
@@ -40,8 +41,11 @@ const action = async () => {
     core.info(`Username: ${username}`);
     const utcOffset = Number(core.getInput('UTC_OFFSET', {required: false}));
     core.info(`UTC offset: ${utcOffset}`);
-    const exclude = core.getInput('EXCLUE', {required: false}).split(',');
-    core.info(`Excluded languages: ${utcOffset}`);
+    const exclude = core.getInput('EXCLUDE', {required: false}).split(',');
+    core.info(`Excluded languages: ${exclude}`);
+    const autoPush = core.getBooleanInput('AUTO_PUSH', {required: false});
+    core.info(`You ${autoPush ? 'have' : "haven't"} set automatically push commits`);
+
     try {
         // Remove old output
         core.info(`Remove old cards...`);
@@ -95,18 +99,20 @@ const action = async () => {
         }
 
         // Commit changes
-        core.info(`Commit file...`);
-        let retry = 0;
-        const maxRetry = 3;
-        while (retry < maxRetry) {
-            retry += 1;
-            try {
-                await commitFile();
-            } catch (error) {
-                if (retry == maxRetry) {
-                    throw error;
+        if (autoPush) {
+            core.info(`Commit file...`);
+            let retry = 0;
+            const maxRetry = 3;
+            while (retry < maxRetry) {
+                retry += 1;
+                try {
+                    await commitFile();
+                } catch (error) {
+                    if (retry == maxRetry) {
+                        throw error;
+                    }
+                    core.warning(`Commit failed. Retry...`);
                 }
-                core.warning(`Commit failed. Retry...`);
             }
         }
     } catch (error: any) {
@@ -138,7 +144,8 @@ if (process.argv.length == 2) {
     const exclude: Array<string> = [];
     if (process.argv[4]) {
         process.argv[4].split(',').forEach(function (val) {
-            exclude.push(translateLanguage(val));
+            const translatedLanguage = translateLanguage(val);
+            exclude.push(translatedLanguage.toLowerCase());
         });
     }
     main(username, utcOffset, exclude);

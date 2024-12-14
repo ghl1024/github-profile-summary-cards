@@ -31,18 +31,21 @@ export class Card {
           font-family: 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif
         }`
         );
+        const strokeWidth = 1;
         this.svg
             .append('rect')
-            .attr('x', 1.5)
-            .attr('y', 1.5)
+            .attr('x', 1)
+            .attr('y', 1)
             .attr('rx', 5)
             .attr('ry', 5)
-            .attr('height', '100%')
-            .attr('width', '100%')
+            // 100% - 2px to show borderline
+            .attr('height', `${((height - 2 * strokeWidth) / height) * 100}%`)
+            // 100% - 2px to show borderline
+            .attr('width', `${((width - 2 * strokeWidth) / width) * 100}%`)
             .attr('stroke', `${theme.stroke}`)
-            .attr('stroke-width', '1')
+            .attr('stroke-width', strokeWidth)
             .attr('fill', `${theme.background}`)
-            .attr('stroke-opacity', 1);
+            .attr('stroke-opacity', `${theme.strokeOpacity}`);
 
         const isEmptyTitle = this.title == '';
         if (!isEmptyTitle) {
